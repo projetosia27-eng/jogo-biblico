@@ -1,0 +1,6 @@
+{
+  "name": "Desafio Bíblico",
+  "description": "Jogo mobile casual de perguntas e respostas bíblicas, com ranking, conquistas e categorias em formato PWA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

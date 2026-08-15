@@ -1,0 +1,58 @@
+import { Category } from '../types';
+
+export const CATEGORIES: Category[] = [
+  {
+    id: 'antigo-testamento',
+    name: 'Antigo Testamento',
+    description: 'A criação, os patriarcas, reis, profetas e leis de Israel',
+    iconName: 'Scroll',
+    color: 'from-amber-500 to-orange-600',
+    accentColor: 'amber-400',
+    questionCount: 8,
+  },
+  {
+    id: 'novo-testamento',
+    name: 'Novo Testamento',
+    description: 'Os Evangelhos, Atos dos Apóstolos, Cartas e Apocalipse',
+    iconName: 'BookOpen',
+    color: 'from-blue-500 to-indigo-600',
+    accentColor: 'blue-400',
+    questionCount: 8,
+  },
+  {
+    id: 'personagens',
+    name: 'Personagens Bíblicos',
+    description: 'Moisés, Davi, Abraão, Ester, Paulo e grandes heróis da fé',
+    iconName: 'Users',
+    color: 'from-emerald-500 to-teal-600',
+    accentColor: 'emerald-400',
+    questionCount: 8,
+  },
+  {
+    id: 'jesus',
+    name: 'Jesus Cristo',
+    description: 'Nascimento, ensinamentos, milagres, morte e ressurreição',
+    iconName: 'Crown',
+    color: 'from-yellow-400 to-amber-500',
+    accentColor: 'yellow-300',
+    questionCount: 8,
+  },
+  {
+    id: 'curiosidades',
+    name: 'Curiosidades',
+    description: 'Fatos surpreendentes, números, medidas e detalhes da Bíblia',
+    iconName: 'Sparkles',
+    color: 'from-purple-500 to-pink-600',
+    accentColor: 'purple-400',
+    questionCount: 8,
+  },
+  {
+    id: 'geral',
+    name: 'Geral',
+    description: 'Desafio completo misturando todos os temas da Palavra',
+    iconName: 'Globe',
+    color: 'from-indigo-500 to-violet-600',
+    accentColor: 'indigo-400',
+    questionCount: 10,
+  },
+];
