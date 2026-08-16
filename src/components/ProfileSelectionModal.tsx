@@ -2,10 +2,11 @@ import React from 'react';
 import { UserProfileType, UserStats } from '../types';
 import { USER_PROFILES } from '../utils/profileDifficulty';
 import { soundFx } from '../utils/sound';
-import { Sparkles, Zap, BookOpen, Crown, Check, ShieldCheck } from 'lucide-react';
+import { Sparkles, Zap, BookOpen, Check, ShieldCheck, Heart, Shield } from 'lucide-react';
 
 interface ProfileSelectionModalProps {
   currentProfile?: UserProfileType;
+  stats?: UserStats;
   onSelectProfile: (profile: UserProfileType) => void;
   onClose?: () => void;
   isInitialSetup?: boolean;
@@ -13,6 +14,7 @@ interface ProfileSelectionModalProps {
 
 export const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   currentProfile,
+  stats,
   onSelectProfile,
   onClose,
   isInitialSetup = false,
@@ -25,8 +27,8 @@ export const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
         return <Zap className="w-6 h-6 text-cyan-400" />;
       case 'adulto':
         return <BookOpen className="w-6 h-6 text-emerald-400" />;
-      case 'pastor':
-        return <Crown className="w-6 h-6 text-purple-400" />;
+      default:
+        return <Zap className="w-6 h-6 text-cyan-400" />;
     }
   };
 
@@ -39,8 +41,8 @@ export const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
         return 'border-cyan-500 bg-cyan-950/40 ring-2 ring-cyan-500/30';
       case 'adulto':
         return 'border-emerald-500 bg-emerald-950/40 ring-2 ring-emerald-500/30';
-      case 'pastor':
-        return 'border-purple-500 bg-purple-950/40 ring-2 ring-purple-500/30';
+      default:
+        return 'border-amber-500 bg-amber-950/40';
     }
   };
 
@@ -51,6 +53,8 @@ export const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
     if (onClose) onClose();
   };
 
+  const attrs = stats?.attributes || { fe: 0, coragem: 0, sabedoria: 0, misericordia: 0, integridade: 0 };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-fade-in">
       <div className="w-full max-w-md bg-slate-900 border border-indigo-500/30 rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
@@ -58,18 +62,60 @@ export const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
         <div className="text-center space-y-1.5">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold uppercase tracking-wider">
             <ShieldCheck className="w-4 h-4 text-indigo-400" />
-            <span>Personalização Bíblica</span>
+            <span>Perfil & Atributos</span>
           </div>
-          <h2 className="text-xl font-black text-white font-game tracking-wide">
-            Qual é o seu perfil?
+          <h2 className="text-xl font-black text-white tracking-wide">
+            Sua Jornada Bíblica
           </h2>
-          <p className="text-xs text-slate-300">
-            O perfil ajusta a curva de dificuldade e o estilo das perguntas nas suas partidas.
-          </p>
         </div>
+
+        {/* User Attributes Summary */}
+        {stats && (
+          <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 block text-center">
+              Seus Atributos Conquistados
+            </span>
+            <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+              <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                <span className="text-amber-400 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Integridade
+                </span>
+                <span className="text-white font-mono">{attrs.integridade || 0}</span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                <span className="text-rose-400 flex items-center gap-1">
+                  <Zap className="w-3.5 h-3.5" /> Coragem
+                </span>
+                <span className="text-white font-mono">{attrs.coragem}</span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                <span className="text-sky-400 flex items-center gap-1">
+                  <Shield className="w-3.5 h-3.5" /> Sabedoria
+                </span>
+                <span className="text-white font-mono">{attrs.sabedoria}</span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                <span className="text-emerald-400 flex items-center gap-1">
+                  <Heart className="w-3.5 h-3.5" /> Misericórdia
+                </span>
+                <span className="text-white font-mono">{attrs.misericordia}</span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between col-span-2">
+                <span className="text-purple-400 flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5" /> Fé
+                </span>
+                <span className="text-white font-mono">{attrs.fe}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Options List */}
         <div className="space-y-3 pt-1">
+          <span className="text-[10px] font-black uppercase text-slate-400 block text-center">
+            Escolha seu Perfil de Atuação:
+          </span>
+
           {USER_PROFILES.map((prof) => {
             const isSelected = currentProfile === prof.id;
             return (
@@ -88,7 +134,7 @@ export const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-extrabold text-white font-game">
+                        <h3 className="text-sm font-extrabold text-white">
                           {prof.title}
                         </h3>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">

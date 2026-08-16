@@ -1,254 +1,153 @@
+import { CheckCircle2, Flame, Lightbulb, Sparkles, X, Zap } from 'lucide-react';
 import React, { useState } from 'react';
-import { Calendar, CheckCircle, Flame, Gift, Lock, Play, Sparkles, X, Zap } from 'lucide-react';
-import { UserStats } from '../types';
-import { STREAK_MILESTONES } from '../data/streakMilestones';
+import { MYSTERIES_DATABASE, MysteryItem } from '../data/mysteries';
 import { soundFx } from '../utils/sound';
 
 interface DailyChallengeModalProps {
-  stats: UserStats;
+  completedToday: boolean;
+  streakDays: number;
+  onCompleteDaily: (xpEarned: number, coinsEarned: number) => void;
   onClose: () => void;
-  onStartDaily: () => void;
-  onClaimStreakReward: (days: number, xp: number, coins: number) => void;
 }
 
 export const DailyChallengeModal: React.FC<DailyChallengeModalProps> = ({
-  stats,
+  completedToday,
+  streakDays,
+  onCompleteDaily,
   onClose,
-  onStartDaily,
-  onClaimStreakReward,
 }) => {
-  const [activeTab, setActiveTab] = useState<'challenge' | 'streak'>('challenge');
-
   const todayStr = new Date().toISOString().split('T')[0];
-  const isCompletedToday = stats.dailyChallengeCompletedDate === todayStr;
+  const dayIndex = Math.abs(
+    todayStr.split('-').reduce((acc, part) => acc + parseInt(part, 10), 0)
+  ) % MYSTERIES_DATABASE.length;
 
-  const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-  const currentDayIndex = new Date().getDay();
+  const todayMystery: MysteryItem = MYSTERIES_DATABASE[dayIndex] || MYSTERIES_DATABASE[0];
 
-  const handleStart = () => {
+  const [unlockedClues, setUnlockedClues] = useState<number>(2);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [isAnswered, setIsAnswered] = useState<boolean>(false);
+  const [isCorrect, setIsCorrect] = useState<boolean>(false);
+
+  const handleSelectOption = (opt: string) => {
+    setSelectedOption(opt);
+    setIsAnswered(true);
+
+    if (opt === todayMystery.correctAnswer) {
+      soundFx.playLevelUp();
+      soundFx.vibrate([40, 60, 40]);
+      setIsCorrect(true);
+    } else {
+      soundFx.playWrong();
+      soundFx.vibrate(80);
+      setIsCorrect(false);
+    }
+  };
+
+  const handleClaimReward = () => {
     soundFx.playClick();
-    onStartDaily();
+    onCompleteDaily(200, 100);
+    onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Top Glow */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-2xl pointer-events-none" />
-
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+      <div className="w-full max-w-md bg-slate-900 border border-amber-500/40 rounded-3xl p-5 space-y-4 shadow-2xl relative">
         <button
           onClick={() => {
             soundFx.playClick();
             onClose();
           }}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full hover:bg-slate-800 transition-colors z-10"
+          className="absolute top-4 right-4 p-2 rounded-2xl bg-slate-800 text-slate-400 hover:text-white"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        {/* Modal Navigation Tabs */}
-        <div className="flex bg-slate-950 p-1 rounded-2xl border border-slate-800 mb-4">
-          <button
-            onClick={() => {
-              soundFx.playClick();
-              setActiveTab('challenge');
-            }}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-              activeTab === 'challenge'
-                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md font-extrabold'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Flame className="w-3.5 h-3.5" />
-            Desafio Diário
-          </button>
-          <button
-            onClick={() => {
-              soundFx.playClick();
-              setActiveTab('streak');
-            }}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-              activeTab === 'streak'
-                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md font-extrabold'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Calendar className="w-3.5 h-3.5" />
-            Sequência ({stats.dailyStreak}d)
-          </button>
+        {/* Modal Title */}
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 font-black shadow-lg shadow-amber-500/20">
+            <Flame className="w-6 h-6 stroke-[2.5]" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider">
+                DESAFIO DO DIA
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-bold">
+                🔥 {streakDays} Dias
+              </span>
+            </div>
+            <h2 className="text-base font-black text-white font-game">
+              {todayMystery.title}
+            </h2>
+          </div>
         </div>
 
-        {/* Tab 1: Desafio Diário */}
-        {activeTab === 'challenge' && (
-          <div className="space-y-4 overflow-y-auto pr-1">
-            <div className="text-center">
-              <div className="w-14 h-14 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                <Flame className="w-8 h-8 text-slate-950 fill-slate-950 animate-bounce" />
-              </div>
-              <h2 className="text-xl font-black text-white font-game">Desafio de Hoje</h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                10 perguntas bíblicas exclusivas da data atual.
-              </p>
+        {completedToday ? (
+          <div className="p-5 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-center space-y-2">
+            <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
+            <h3 className="text-sm font-black text-white font-game">
+              Desafio Concluído Hoje!
+            </h3>
+            <p className="text-xs text-slate-300">
+              Você já garantiu seu bônus de hoje! Volte amanhã para manter sua sequência diária ativa.
+            </p>
+          </div>
+        ) : !isAnswered ? (
+          <div className="space-y-3">
+            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+              <span className="text-[10px] font-extrabold text-amber-400 uppercase flex items-center gap-1">
+                <Lightbulb className="w-3.5 h-3.5" /> Pistas do Dia
+              </span>
+              {todayMystery.clues.slice(0, unlockedClues).map((clue, idx) => (
+                <p key={idx} className="text-xs text-slate-200 font-medium">
+                  • {clue}
+                </p>
+              ))}
             </div>
 
-            {/* Status Card */}
-            {isCompletedToday ? (
-              <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center">
-                <div className="inline-flex items-center gap-1.5 text-emerald-400 font-extrabold text-xs mb-1">
-                  <CheckCircle className="w-4 h-4" />
-                  DESAFIO DE HOJE CONCLUÍDO!
-                </div>
-                <p className="text-[11px] text-slate-300">
-                  Você já resgatou o bônus diário hoje. Pode jogar novamente para praticar!
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase text-slate-400 block">
+                Escolha a Resposta Correta:
+              </span>
+              <div className="grid grid-cols-1 gap-2">
+                {todayMystery.options.map((opt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSelectOption(opt)}
+                    className="w-full p-3.5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-amber-400 text-left text-xs font-bold text-slate-200 hover:text-white active:scale-95 transition-all"
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3 text-center">
+            {isCorrect ? (
+              <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 space-y-2">
+                <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
+                <h3 className="text-sm font-black text-white font-game">EXCELENTE!</h3>
+                <p className="text-xs text-slate-200">{todayMystery.explanation}</p>
+                <p className="text-xs text-amber-300 font-mono font-bold">
+                  {todayMystery.bibleReference}
                 </p>
               </div>
             ) : (
-              <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 rounded-2xl p-3.5 border border-amber-500/30 flex items-center justify-around text-center">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Bônus XP</span>
-                  <span className="text-base font-black text-amber-300 flex items-center justify-center gap-1 font-mono">
-                    <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
-                    +200 XP
-                  </span>
-                </div>
-                <div className="h-8 w-[1px] bg-slate-700" />
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Bônus Moedas</span>
-                  <span className="text-base font-black text-amber-300 flex items-center justify-center gap-1 font-mono">
-                    <Gift className="w-4 h-4 text-amber-400" />
-                    +100
-                  </span>
-                </div>
+              <div className="p-4 rounded-2xl bg-rose-950/80 border border-rose-500/40 space-y-2">
+                <h3 className="text-sm font-black text-white font-game">RESPOSTA INCORRETA</h3>
+                <p className="text-xs text-slate-300">
+                  A resposta correta era: <strong className="text-white">{todayMystery.correctAnswer}</strong>.
+                </p>
               </div>
             )}
 
-            {/* Weekly Days Bar */}
-            <div className="bg-slate-800/60 rounded-2xl p-3 border border-slate-700/60">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-300 mb-2.5 px-1">
-                <span>Dias da Semana</span>
-                <span className="text-orange-400 font-extrabold flex items-center gap-1 font-mono">
-                  <Flame className="w-3.5 h-3.5 fill-orange-400" />
-                  🔥 {stats.dailyStreak} dias
-                </span>
-              </div>
-
-              <div className="grid grid-cols-7 gap-1">
-                {daysOfWeek.map((day, idx) => {
-                  const isToday = idx === currentDayIndex;
-                  const isCompleted = idx <= currentDayIndex;
-
-                  return (
-                    <div
-                      key={day}
-                      className={`flex flex-col items-center py-1.5 rounded-xl border text-center transition-all ${
-                        isToday
-                          ? 'bg-orange-500/20 border-orange-500 text-orange-300 font-bold shadow-md'
-                          : isCompleted
-                          ? 'bg-slate-700/50 border-slate-600 text-slate-300'
-                          : 'bg-slate-800/40 border-slate-800 text-slate-500'
-                      }`}
-                    >
-                      <span className="text-[9px] uppercase font-bold">{day}</span>
-                      <div className="mt-1">
-                        {isCompleted ? (
-                          <Flame className={`w-3 h-3 ${isToday ? 'text-orange-400 fill-orange-400' : 'text-slate-400 fill-slate-400'}`} />
-                        ) : (
-                          <div className="w-1.5 h-1.5 rounded-full bg-slate-600 my-1" />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Start Button */}
             <button
-              onClick={handleStart}
-              disabled={stats.lives <= 0}
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-slate-950 font-black text-sm uppercase tracking-wide shadow-xl shadow-orange-500/20 hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2 game-btn-3d"
+              onClick={handleClaimReward}
+              className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg active:scale-95 transition-all"
             >
-              <Play className="w-4 h-4 fill-slate-950" />
-              <span>{isCompletedToday ? 'Jogar Novamente' : 'JOGAR DESAFIO (10 Pergs)'}</span>
+              CONCLUIR DESAFIO DO DIA (+200 XP)
             </button>
-          </div>
-        )}
-
-        {/* Tab 2: Sequência / Streak Rewards */}
-        {activeTab === 'streak' && (
-          <div className="space-y-3 overflow-y-auto pr-1">
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-center">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Sua Sequência Atual</span>
-              <div className="text-2xl font-black text-orange-400 flex items-center justify-center gap-1.5 my-1">
-                <Flame className="w-7 h-7 fill-orange-400" />
-                {stats.dailyStreak} Días Consecutivos
-              </div>
-              <p className="text-[11px] text-slate-400">
-                Jogue todos os dias para alcançar novos marcos e desbloquear recompensas exclusivas!
-              </p>
-            </div>
-
-            {/* Milestones List */}
-            <div className="space-y-2">
-              {STREAK_MILESTONES.map((milestone) => {
-                const isReached = stats.dailyStreak >= milestone.days || (stats.maxStreak || 1) >= milestone.days;
-                const isClaimed = (stats.claimedStreakMilestones || []).includes(milestone.days);
-
-                return (
-                  <div
-                    key={milestone.days}
-                    className={`p-3 rounded-2xl border flex items-center justify-between transition-all ${
-                      isClaimed
-                        ? 'bg-slate-800/40 border-slate-800 opacity-60'
-                        : isReached
-                        ? 'bg-amber-500/10 border-amber-500/40'
-                        : 'bg-slate-800/60 border-slate-800'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className={`p-2 rounded-xl border ${
-                        isReached ? 'bg-orange-500/20 border-orange-500/40 text-orange-400' : 'bg-slate-700/40 border-slate-700 text-slate-500'
-                      }`}>
-                        <Flame className="w-5 h-5 fill-current" />
-                      </div>
-
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-black text-white">{milestone.title}</span>
-                          <span className="text-[10px] font-bold text-amber-400 font-mono">
-                            {milestone.days} dias
-                          </span>
-                        </div>
-                        <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                          +{milestone.rewardCoins} Moedas, +{milestone.rewardXP} XP
-                        </span>
-                      </div>
-                    </div>
-
-                    {isClaimed ? (
-                      <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-0.5">
-                        <CheckCircle className="w-3.5 h-3.5" /> Resgatado
-                      </span>
-                    ) : isReached ? (
-                      <button
-                        onClick={() => {
-                          soundFx.playCoin();
-                          onClaimStreakReward(milestone.days, milestone.rewardXP, milestone.rewardCoins);
-                        }}
-                        className="py-1.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-[11px] shadow-md active:scale-95 transition-all game-btn-3d flex items-center gap-1"
-                      >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        Resgatar
-                      </button>
-                    ) : (
-                      <div className="p-1.5 rounded-lg bg-slate-800 text-slate-500">
-                        <Lock className="w-4 h-4" />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
           </div>
         )}
       </div>

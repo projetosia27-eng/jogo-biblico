@@ -1,31 +1,33 @@
-export type Screen = 'splash' | 'home' | 'categories' | 'game' | 'result';
+export type Screen =
+  | 'splash'
+  | 'home'
+  | 'journeys'
+  | 'journey-play'
+  | 'mysteries'
+  | 'mystery-play'
+  | 'real-life-list'
+  | 'real-life-play'
+  | 'result';
 
-export type CategoryId = 'antigo-testamento' | 'novo-testamento' | 'personagens' | 'jesus' | 'curiosidades' | 'geral';
+export type UserProfileType = 'adolescente' | 'jovem' | 'adulto';
+export type UserProfile = UserProfileType | 'pastor' | 'leader';
 
-export type UserProfileType = 'adolescente' | 'jovem' | 'adulto' | 'pastor';
+export type MysteryType =
+  | 'quem_sou_eu'
+  | 'onde_estou'
+  | 'qual_acontecimento'
+  | 'qual_livro'
+  | 'quem_disse'
+  | 'linha_do_tempo';
 
-export interface Category {
-  id: CategoryId;
-  name: string;
-  description: string;
-  iconName: string;
-  color: string; // Tailwind gradient class or hex
-  accentColor: string;
-  questionCount: number;
-}
+export type MysteryDifficulty = 'facil' | 'medio' | 'dificil';
 
-export interface Question {
-  id: string;
-  categoryId: CategoryId;
-  question: string;
-  options: [string, string, string, string];
-  correctIndex: number;
-  explanation: string;
-  reference: string; // e.g. "Gênesis 1:1"
-  difficulty: 'facil' | 'medio' | 'dificil';
-  difficultyLevel?: number; // 1 to 15 for Journey progression
-  profileTags?: UserProfileType[];
-  hint: string;
+export interface PlayerAttributes {
+  fe: number;
+  coragem: number;
+  sabedoria: number;
+  misericordia: number;
+  integridade: number;
 }
 
 export interface UserStats {
@@ -36,27 +38,30 @@ export interface UserStats {
   coins: number;
   lives: number;
   maxLives: number;
-  nextLifeTimestamp: number | null; // epoch time for life recharge
+  nextLifeTimestamp: number | null;
   dailyStreak: number;
   maxStreak: number;
   lastPlayDate: string; // YYYY-MM-DD
   dailyChallengeCompletedDate: string | null; // YYYY-MM-DD
   dailyChallengesCompleted: number;
   totalDaysPlayed: number;
-  claimedStreakMilestones: number[]; // e.g. [3, 7, 14, 30]
+  claimedStreakMilestones: number[];
   highScore: number;
-  maxCombo: number;
   matchesPlayed: number;
   firstMatchBonusClaimed: boolean;
   totalAnswered: number;
   totalCorrect: number;
-  totalWrong: number;
-  fastAnswerCount: number;
-  completedCategories: Record<CategoryId, number>;
   soundEnabled: boolean;
   vibrationEnabled: boolean;
-  maxJourneyQuestionReached: number;
   journeysCompleted: number;
+  completedJourneyIds: string[];
+  mysteriesSolved: number;
+  solvedMysteryIds: string[];
+  decisionsMade: number;
+  realLifeCompletedCount: number;
+  replayedStoryCount: number;
+  completedRealLifeStoryIds: string[];
+  attributes: PlayerAttributes;
 }
 
 export interface Achievement {
@@ -79,51 +84,55 @@ export interface StreakMilestone {
   title: string;
 }
 
-export interface JourneyHelps {
-  fiftyFifty: boolean;
-  trocar: boolean;
-  dica: boolean;
+// Real Life Mode Data Interfaces
+export interface RealLifeChoice {
+  id: string;
+  text: string;
+  consequence: string;
+  effects: Partial<PlayerAttributes>;
+  biblicalPrinciple: string;
+  biblicalReference: string;
+  biblicalExplanation: string;
 }
 
-export interface GameSession {
-  categoryId: CategoryId | 'diario' | 'jornada';
-  categoryName: string;
-  questions: Question[];
-  currentIndex: number;
-  score: number;
-  combo: number;
-  maxCombo: number;
-  correctAnswers: number;
-  wrongAnswers: number;
-  livesLeft: number; // match lives (starts at 3 for standard, 1 for journey)
-  coinsEarned: number;
+export interface RealLifeScene {
+  id: string;
+  sceneNumber: number; // 1 to 5
+  title: string;
+  context: string;
+  promptQuestion: string; // e.g., "O que você faria?"
+  choices: RealLifeChoice[];
+}
+
+export interface RealLifeStory {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  profiles: UserProfileType[];
+  theme: string;
+  icon: string;
+  scenes: RealLifeScene[];
+  reflectionQuestion: string;
+  completionReward: {
+    xp: number;
+    coins: number;
+  };
+}
+
+// Result summary type for Journeys, Mysteries, or Real Life
+export interface GameSessionResult {
+  mode: 'journey' | 'mystery' | 'daily' | 'real_life';
+  title: string;
+  subtitle: string;
   xpEarned: number;
-  isDailyChallenge: boolean;
-  isJourney?: boolean;
-  guaranteedScore?: number;
-  checkpointReached?: number; // 0, 5, 10
-  helpsUsed?: JourneyHelps;
-  activeHint?: string | null;
-  isFinished: boolean;
-  isNewRecord?: boolean;
-  firstMatchReward?: boolean;
-  isRewardEarned?: boolean;
+  coinsEarned: number;
+  attributesGained?: Partial<PlayerAttributes>;
+  finalProfileName?: string;
+  finalProfileDescription?: string;
+  cluesUsed?: number;
+  bibleReference?: string;
+  isDailyChallenge?: boolean;
+  reflectionQuestion?: string;
+  storyId?: string;
 }
-
-export const JOURNEY_SCORE_LADDER = [
-  100,      // Q1 (Fácil)
-  200,      // Q2 (Fácil)
-  300,      // Q3 (Fácil)
-  500,      // Q4 (Fácil)
-  1000,     // Q5 (Fácil) - Checkpoint 1 (1.000 pts)
-  2000,     // Q6 (Médio)
-  3000,     // Q7 (Médio)
-  5000,     // Q8 (Médio)
-  7500,     // Q9 (Médio)
-  10000,    // Q10 (Médio) - Checkpoint 2 (10.000 pts)
-  20000,    // Q11 (Difícil)
-  30000,    // Q12 (Difícil)
-  50000,    // Q13 (Difícil)
-  75000,    // Q14 (Difícil)
-  100000,   // Q15 (Pergunta Final / 👑)
-];

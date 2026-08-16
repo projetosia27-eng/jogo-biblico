@@ -7,7 +7,7 @@ const ACTIVE_JOURNEY_KEY = 'desafio_biblico_active_journey';
 const RECENT_QUESTIONS_KEY = 'desafio_biblico_recent_questions';
 
 const DEFAULT_STATS: UserStats = {
-  userProfile: 'jovem', // Default profile, can be selected on first run
+  userProfile: 'jovem',
   level: 1,
   xp: 0,
   maxXp: 100,
@@ -23,32 +23,31 @@ const DEFAULT_STATS: UserStats = {
   totalDaysPlayed: 1,
   claimedStreakMilestones: [],
   highScore: 0,
-  maxCombo: 0,
   matchesPlayed: 0,
   firstMatchBonusClaimed: false,
   totalAnswered: 0,
   totalCorrect: 0,
-  totalWrong: 0,
-  fastAnswerCount: 0,
-  completedCategories: {
-    'antigo-testamento': 0,
-    'novo-testamento': 0,
-    'personagens': 0,
-    'jesus': 0,
-    'curiosidades': 0,
-    'geral': 0,
-  },
   soundEnabled: true,
   vibrationEnabled: true,
-  maxJourneyQuestionReached: 0,
   journeysCompleted: 0,
+  completedJourneyIds: [],
+  mysteriesSolved: 0,
+  solvedMysteryIds: [],
+  decisionsMade: 0,
+  realLifeCompletedCount: 0,
+  replayedStoryCount: 0,
+  completedRealLifeStoryIds: [],
+  attributes: {
+    fe: 0,
+    coragem: 0,
+    sabedoria: 0,
+    misericordia: 0,
+    integridade: 0,
+  },
 };
 
 export const RECHARGE_INTERVAL_MS = 20 * 60 * 1000; // 20 minutes per life
 
-/**
- * Load user stats with fallback defaults & auto-recharge calculations.
- */
 export function loadUserStats(): UserStats {
   try {
     const raw = localStorage.getItem(STATS_KEY);
@@ -60,7 +59,16 @@ export function loadUserStats(): UserStats {
     const stats: UserStats = {
       ...DEFAULT_STATS,
       ...parsed,
+      attributes: {
+        ...DEFAULT_STATS.attributes,
+        ...(parsed.attributes || {}),
+      },
     };
+
+    // Migration: Migrate obsolete profile 'pastor' or 'leader' to 'adulto'
+    if (stats.userProfile === ('pastor' as any) || stats.userProfile === ('leader' as any)) {
+      stats.userProfile = 'adulto';
+    }
 
     // Life auto recharge check
     const now = Date.now();
@@ -88,9 +96,9 @@ export function loadUserStats(): UserStats {
       const diffDays = Math.round((current.getTime() - last.getTime()) / (1000 * 3600 * 24));
 
       if (diffDays === 1) {
-        // Streak is active from yesterday, keep as is until today's play
+        // Streak is active
       } else if (diffDays > 1) {
-        stats.dailyStreak = 1; // streak reset if full day missed
+        stats.dailyStreak = 1;
       }
     }
 
@@ -102,9 +110,6 @@ export function loadUserStats(): UserStats {
   }
 }
 
-/**
- * Persist user stats to localStorage (Centralized persistence layer)
- */
 export function saveUserStats(stats: UserStats): void {
   try {
     localStorage.setItem(STATS_KEY, JSON.stringify(stats));
@@ -113,9 +118,6 @@ export function saveUserStats(stats: UserStats): void {
   }
 }
 
-/**
- * Load achievements list
- */
 export function loadAchievements(): Achievement[] {
   try {
     const raw = localStorage.getItem(ACHIEVEMENTS_KEY);
@@ -124,8 +126,6 @@ export function loadAchievements(): Achievement[] {
       return INITIAL_ACHIEVEMENTS;
     }
     const stored: Achievement[] = JSON.parse(raw);
-    
-    // Ensure all initial achievements exist (migration safety)
     const storedMap = new Map(stored.map((a) => [a.id, a]));
     const merged = INITIAL_ACHIEVEMENTS.map((init) => {
       const existing = storedMap.get(init.id);
@@ -147,9 +147,6 @@ export function loadAchievements(): Achievement[] {
   }
 }
 
-/**
- * Save achievements to localStorage
- */
 export function saveAchievements(achievements: Achievement[]): void {
   try {
     localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
@@ -158,9 +155,6 @@ export function saveAchievements(achievements: Achievement[]): void {
   }
 }
 
-/**
- * Add XP and coins, handling level ups
- */
 export function addXpAndCoins(
   currentStats: UserStats,
   xpEarned: number,
@@ -190,9 +184,6 @@ export function addXpAndCoins(
   return { updatedStats, leveledUp, newLevel: level };
 }
 
-/**
- * Consume 1 life
- */
 export function consumeLife(currentStats: UserStats): UserStats {
   if (currentStats.lives <= 0) return currentStats;
 
@@ -214,9 +205,6 @@ export function consumeLife(currentStats: UserStats): UserStats {
   return updated;
 }
 
-/**
- * Buy life with coins
- */
 export function buyLife(currentStats: UserStats, cost: number = 50): UserStats | null {
   if (currentStats.coins < cost || currentStats.lives >= currentStats.maxLives) {
     return null;
@@ -234,13 +222,10 @@ export function buyLife(currentStats: UserStats, cost: number = 50): UserStats |
   return updated;
 }
 
-/**
- * Record daily play date and update daily streak
- */
 export function recordDailyPlay(currentStats: UserStats): UserStats {
   const today = new Date().toISOString().split('T')[0];
   if (currentStats.lastPlayDate === today) {
-    return currentStats; // Already recorded today
+    return currentStats;
   }
 
   const last = new Date(currentStats.lastPlayDate);
@@ -269,9 +254,6 @@ export function recordDailyPlay(currentStats: UserStats): UserStats {
   return updated;
 }
 
-/**
- * Evaluate achievements progress and return newly unlocked achievements
- */
 export function checkAndEvaluateAchievements(
   stats: UserStats,
   achievementsList: Achievement[]
@@ -282,17 +264,16 @@ export function checkAndEvaluateAchievements(
   const updatedAchievements = achievementsList.map((ach) => {
     let progress = ach.progress;
 
-    if (ach.id === 'ach_1') progress = stats.matchesPlayed >= 1 ? 1 : 0;
-    if (ach.id === 'ach_chk_1') progress = (stats.maxJourneyQuestionReached || 0) >= 5 ? 1 : 0;
-    if (ach.id === 'ach_chk_2') progress = (stats.maxJourneyQuestionReached || 0) >= 10 ? 1 : 0;
-    if (ach.id === 'ach_chk_3') progress = (stats.maxJourneyQuestionReached || 0) >= 15 ? 1 : 0;
-    if (ach.id === 'ach_master') progress = (stats.journeysCompleted || 0) >= 1 ? 1 : 0;
-    if (ach.id === 'ach_2') progress = Math.min(ach.maxProgress, stats.totalCorrect);
-    if (ach.id === 'ach_3') progress = Math.min(ach.maxProgress, stats.totalCorrect);
-    if (ach.id === 'ach_4') progress = Math.min(ach.maxProgress, stats.maxCombo);
-    if (ach.id === 'ach_5') progress = stats.fastAnswerCount >= 1 ? 1 : 0;
-    if (ach.id === 'ach_6') progress = Math.min(ach.maxProgress, Math.max(stats.dailyStreak, stats.maxStreak));
-    if (ach.id === 'ach_7') progress = Math.min(ach.maxProgress, stats.level);
+    if (ach.id === 'primeira_escolha') progress = (stats.realLifeCompletedCount || 0) >= 1 ? 1 : 0;
+    if (ach.id === 'pensando_alem') progress = Math.min(ach.maxProgress, stats.realLifeCompletedCount || 0);
+    if (ach.id === 'outra_perspectiva') progress = (stats.replayedStoryCount || 0) >= 1 ? 1 : 0;
+    if (ach.id === 'vida_e_fe') progress = Math.min(ach.maxProgress, stats.completedRealLifeStoryIds?.length || 0);
+    if (ach.id === 'primeira_decisao') progress = stats.decisionsMade >= 1 ? 1 : 0;
+    if (ach.id === 'investigador') progress = Math.min(ach.maxProgress, stats.mysteriesSolved);
+    if (ach.id === 'viajante') progress = Math.min(ach.maxProgress, stats.journeysCompleted);
+    if (ach.id === 'conhecedor') progress = Math.min(ach.maxProgress, stats.mysteriesSolved);
+    if (ach.id === 'sabedoria_divina') progress = Math.min(ach.maxProgress, stats.attributes.sabedoria);
+    if (ach.id === 'fidelidade_diaria') progress = Math.min(ach.maxProgress, Math.max(stats.dailyStreak, stats.maxStreak));
 
     const isUnlocked = progress >= ach.maxProgress;
 
@@ -317,9 +298,6 @@ export function checkAndEvaluateAchievements(
   return { updatedAchievements, newlyUnlocked };
 }
 
-/**
- * Save active journey session to localStorage
- */
 export function saveActiveJourney(session: any | null): void {
   try {
     if (!session) {
@@ -332,9 +310,6 @@ export function saveActiveJourney(session: any | null): void {
   }
 }
 
-/**
- * Load active journey session from localStorage
- */
 export function loadActiveJourney(): any | null {
   try {
     const raw = localStorage.getItem(ACTIVE_JOURNEY_KEY);
@@ -345,9 +320,6 @@ export function loadActiveJourney(): any | null {
   }
 }
 
-/**
- * Clear active journey session from localStorage
- */
 export function clearActiveJourney(): void {
   try {
     localStorage.removeItem(ACTIVE_JOURNEY_KEY);
@@ -356,9 +328,6 @@ export function clearActiveJourney(): void {
   }
 }
 
-/**
- * Load recent question IDs
- */
 export function loadRecentQuestionIds(): string[] {
   try {
     const raw = localStorage.getItem(RECENT_QUESTIONS_KEY);
@@ -369,9 +338,6 @@ export function loadRecentQuestionIds(): string[] {
   }
 }
 
-/**
- * Add recent question IDs (keeps max 60 most recent)
- */
 export function addRecentQuestionIds(ids: string[]): void {
   try {
     const existing = loadRecentQuestionIds();
