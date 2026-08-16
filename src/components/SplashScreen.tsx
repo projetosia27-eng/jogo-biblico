@@ -29,9 +29,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
 
       {/* Top Tagline */}
       <div className="pt-8 text-center z-10 animate-fade-in">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-bold tracking-wide uppercase shadow-sm">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Jogo Mobile de Quiz Bíblico</span>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-bold tracking-wide uppercase shadow-sm">
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <span>Jornadas • Decisões • Mistérios</span>
         </div>
       </div>
 
@@ -48,11 +48,11 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
         </div>
 
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white mb-2 font-game drop-shadow-md">
-          DESAFIO <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-200 bg-clip-text text-transparent">BÍBLICO</span>
+          JORNADA DA <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-200 bg-clip-text text-transparent">FÉ</span>
         </h1>
 
         <p className="text-sm text-slate-300 max-w-xs font-medium leading-relaxed px-2">
-          Teste seus conhecimentos, aprenda a Palavra e supere seus limites na Jornada Bíblica!
+          Vivencie grandes histórias, tome decisões do cotidiano e desvende os mistérios da Palavra de Deus!
         </p>
       </div>
 
@@ -63,11 +63,11 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
           className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 font-black text-lg tracking-wide uppercase shadow-xl shadow-amber-500/25 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-3 border-b-4 border-amber-700 game-btn-3d"
         >
           <Play className="w-6 h-6 fill-slate-950" />
-          <span>Jogar Agora</span>
+          <span>Iniciar Jornada</span>
         </button>
 
-        <p className="text-[11px] text-center text-slate-500 mt-4 font-medium">
-          Versão 1.0 • PWA Mobile Ready
+        <p className="text-[11px] text-center text-slate-400 mt-4 font-medium">
+          Vivenciando a Palavra • Edição Interativa
         </p>
       </div>
     </div>

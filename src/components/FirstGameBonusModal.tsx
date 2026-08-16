@@ -32,7 +32,7 @@ export const FirstGameBonusModal: React.FC<FirstGameBonusModalProps> = ({ onClai
           Primeira Recompensa!
         </h2>
         <p className="text-xs text-slate-300 font-medium mt-1">
-          Parabéns por completar sua primeira partida no Desafio Bíblico! Aqui está o seu bônus especial:
+          Parabéns por completar sua primeira experiência na Jornada da Fé! Aqui está o seu bônus especial:
         </p>
 
         {/* Rewards List */}

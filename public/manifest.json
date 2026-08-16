@@ -1,7 +1,7 @@
 {
-  "name": "Desafio Bíblico",
-  "short_name": "DesafioBíblico",
-  "description": "Jogo mobile casual de perguntas e respostas bíblicas em PWA",
+  "name": "Jornada da Fé",
+  "short_name": "JornadaDaFé",
+  "description": "Experiência bíblica interativa com jornadas de fé, dilemas do cotidiano e mistérios das Escrituras",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

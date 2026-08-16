@@ -236,7 +236,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="mt-4 pt-3 border-t border-slate-800 text-center text-[11px] text-slate-500">
           <p className="flex items-center justify-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            Desafio Bíblico • Versão Final Mobile
+            Jornada da Fé • Edição Interativa
           </p>
         </div>
       </div>

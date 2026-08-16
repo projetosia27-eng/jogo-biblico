@@ -1,6 +1,6 @@
 {
-  "name": "Desafio Bíblico",
-  "description": "Jogo mobile casual de perguntas e respostas bíblicas, com ranking, conquistas e categorias em formato PWA.",
+  "name": "Jornada da Fé",
+  "description": "Experiência bíblica interativa com jornadas históricas, dilemas do cotidiano e mistérios investigativos das Escrituras.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

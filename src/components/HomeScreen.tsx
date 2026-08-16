@@ -86,13 +86,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         {/* App Title Banner */}
         <div className="text-center flex flex-col items-center">
           <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
-            Desafio Bíblico Narrativo
+            Jornada da Fé
           </span>
           <h1 className="text-2xl font-black text-slate-100 mt-2 tracking-tight">
             Decisões, Histórias e Mistérios
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Sua jornada diária de aprendizado e reflexão bíblica.
+            Sua vivência diária de aprendizado e reflexão bíblica.
           </p>
         </div>
 
