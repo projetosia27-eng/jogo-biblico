@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Download, RefreshCw, Settings, Smartphone, Volume2, VolumeX, Vibrate, X, ShieldCheck, Check, User } from 'lucide-react';
+import { Download, RefreshCw, Settings, Smartphone, Volume2, VolumeX, Vibrate, X, ShieldCheck, Check, User, Shield } from 'lucide-react';
 import { UserStats, UserProfileType } from '../types';
 import { USER_PROFILES } from '../utils/profileDifficulty';
 import { soundFx } from '../utils/sound';
+import { PrivacyModal } from './PrivacyModal';
 
 interface SettingsModalProps {
   stats: UserStats;
@@ -20,6 +21,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState<boolean>(false);
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState<boolean>(false);
 
   useEffect(() => {
     const handleBeforeInstall = (e: Event) => {
@@ -233,12 +235,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
         )}
 
+        {/* Privacy Policy Button */}
+        <button
+          onClick={() => {
+            soundFx.playClick();
+            setShowPrivacyModal(true);
+          }}
+          className="w-full mt-3 py-2 px-3 rounded-2xl bg-slate-800/60 border border-slate-700/60 text-slate-300 hover:text-white font-medium text-xs flex items-center justify-center gap-2 transition-colors"
+        >
+          <Shield className="w-4 h-4 text-emerald-400" />
+          <span>Política de Privacidade</span>
+        </button>
+
         <div className="mt-4 pt-3 border-t border-slate-800 text-center text-[11px] text-slate-500">
           <p className="flex items-center justify-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
             Jornada da Fé • Edição Interativa
           </p>
         </div>
+
+        {showPrivacyModal && (
+          <PrivacyModal onClose={() => setShowPrivacyModal(false)} />
+        )}
       </div>
     </div>
   );

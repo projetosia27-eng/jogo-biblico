@@ -1,10 +1,13 @@
 import { UserStats, Achievement } from '../types';
 import { INITIAL_ACHIEVEMENTS } from '../data/achievements';
 
-const STATS_KEY = 'desafio_biblico_user_stats';
-const ACHIEVEMENTS_KEY = 'desafio_biblico_achievements';
-const ACTIVE_JOURNEY_KEY = 'desafio_biblico_active_journey';
-const RECENT_QUESTIONS_KEY = 'desafio_biblico_recent_questions';
+const STATS_KEY = 'jornada_da_fe_user_stats';
+const LEGACY_STATS_KEY = 'desafio_biblico_user_stats';
+const ACHIEVEMENTS_KEY = 'jornada_da_fe_achievements';
+const LEGACY_ACHIEVEMENTS_KEY = 'desafio_biblico_achievements';
+const ACTIVE_JOURNEY_KEY = 'jornada_da_fe_active_journey';
+const RECENT_QUESTIONS_KEY = 'jornada_da_fe_recent_questions';
+const CURRENT_SCHEMA_VERSION = 2;
 
 const DEFAULT_STATS: UserStats = {
   userProfile: 'jovem',
@@ -50,15 +53,23 @@ export const RECHARGE_INTERVAL_MS = 20 * 60 * 1000; // 20 minutes per life
 
 export function loadUserStats(): UserStats {
   try {
-    const raw = localStorage.getItem(STATS_KEY);
+    let raw = localStorage.getItem(STATS_KEY);
     if (!raw) {
-      saveUserStats(DEFAULT_STATS);
-      return DEFAULT_STATS;
+      // Legacy key fallback check
+      raw = localStorage.getItem(LEGACY_STATS_KEY);
     }
+
+    if (!raw) {
+      const initialWithVersion = { ...DEFAULT_STATS, storageVersion: CURRENT_SCHEMA_VERSION };
+      saveUserStats(initialWithVersion);
+      return initialWithVersion;
+    }
+
     const parsed = JSON.parse(raw);
     const stats: UserStats = {
       ...DEFAULT_STATS,
       ...parsed,
+      storageVersion: CURRENT_SCHEMA_VERSION,
       attributes: {
         ...DEFAULT_STATS.attributes,
         ...(parsed.attributes || {}),
@@ -112,7 +123,8 @@ export function loadUserStats(): UserStats {
 
 export function saveUserStats(stats: UserStats): void {
   try {
-    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+    const statsToSave = { ...stats, storageVersion: CURRENT_SCHEMA_VERSION };
+    localStorage.setItem(STATS_KEY, JSON.stringify(statsToSave));
   } catch (e) {
     console.error('Error saving stats to localStorage', e);
   }
@@ -120,7 +132,10 @@ export function saveUserStats(stats: UserStats): void {
 
 export function loadAchievements(): Achievement[] {
   try {
-    const raw = localStorage.getItem(ACHIEVEMENTS_KEY);
+    let raw = localStorage.getItem(ACHIEVEMENTS_KEY);
+    if (!raw) {
+      raw = localStorage.getItem(LEGACY_ACHIEVEMENTS_KEY);
+    }
     if (!raw) {
       saveAchievements(INITIAL_ACHIEVEMENTS);
       return INITIAL_ACHIEVEMENTS;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, Coins, Heart, PlusCircle, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { Flame, Coins, Heart, PlusCircle, Sparkles, Volume2, VolumeX, Home } from 'lucide-react';
 import { UserStats } from '../types';
 import { buyLife, RECHARGE_INTERVAL_MS } from '../utils/storage';
 import { soundFx } from '../utils/sound';
@@ -8,12 +8,16 @@ interface HeaderTopBarProps {
   stats: UserStats;
   onUpdateStats: (newStats: UserStats) => void;
   onOpenSettings: () => void;
+  onGoHome?: () => void;
+  currentScreen?: string;
 }
 
 export const HeaderTopBar: React.FC<HeaderTopBarProps> = ({
   stats,
   onUpdateStats,
   onOpenSettings,
+  onGoHome,
+  currentScreen,
 }) => {
   const [showLifeModal, setShowLifeModal] = useState(false);
   const [timeToNextLife, setTimeToNextLife] = useState<string>('');
@@ -66,8 +70,22 @@ export const HeaderTopBar: React.FC<HeaderTopBarProps> = ({
     <>
       <header className="sticky top-0 z-30 w-full bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-3 py-2">
         <div className="flex items-center justify-between max-w-md mx-auto">
-          {/* Level & XP Badge */}
-          <div className="flex items-center gap-2">
+          {/* Level & XP Badge + Home Button */}
+          <div className="flex items-center gap-1.5">
+            {onGoHome && currentScreen && currentScreen !== 'home' && (
+              <button
+                onClick={() => {
+                  soundFx.playClick();
+                  onGoHome();
+                }}
+                className="p-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 border border-amber-500/40 text-amber-300 hover:text-white active:scale-95 transition-all flex items-center gap-1 shadow-sm"
+                title="Voltar para o Início (Home)"
+              >
+                <Home className="w-4 h-4 text-amber-400 stroke-[2.5]" />
+                <span className="text-[11px] font-extrabold uppercase hidden sm:inline">Início</span>
+              </button>
+            )}
+
             <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-indigo-600 p-[2px] shadow-md shadow-amber-500/10">
               <div className="w-full h-full bg-slate-900 rounded-[10px] flex flex-col items-center justify-center">
                 <span className="text-[10px] uppercase font-bold text-amber-400 leading-none">Nível</span>

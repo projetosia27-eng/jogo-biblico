@@ -29,6 +29,7 @@ import { RealLifeResultScreen } from './components/RealLifeResultScreen';
 import { ResultScreen } from './components/ResultScreen';
 import { SettingsModal } from './components/SettingsModal';
 import { SplashScreen } from './components/SplashScreen';
+import { PwaBanners } from './components/PwaBanners';
 
 import { StoryJourney } from './data/journeys';
 import { MysteryItem } from './data/mysteries';
@@ -60,13 +61,34 @@ export default function App() {
   const [leveledUp, setLeveledUp] = useState<boolean>(false);
   const [newLevel, setNewLevel] = useState<number>(1);
 
-  // Register PWA Service Worker on mount
+  // Helper for history-aware navigation (Android back button support)
+  const navigateTo = (newScreen: Screen) => {
+    if (screen !== newScreen) {
+      window.history.pushState({ screen: newScreen }, '');
+      setScreen(newScreen);
+    }
+  };
+
+  // Register PWA Service Worker & History popstate on mount
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch((err) => {
-        console.log('SW registration failed:', err);
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+        // Silent catch in dev
       });
     }
+
+    window.history.replaceState({ screen: 'splash' }, '');
+
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state && event.state.screen) {
+        setScreen(event.state.screen);
+      } else {
+        setScreen('home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   // Sync sound setting
@@ -266,30 +288,34 @@ export default function App() {
     const fresh = loadUserStats();
     setStats(fresh);
     setAchievements(loadAchievements());
-    setScreen('home');
+    navigateTo('home');
   };
 
   return (
     <MobileFrame>
+      <PwaBanners />
+
       {/* Top Header Status Bar */}
       {screen !== 'splash' && (
         <HeaderTopBar
           stats={stats}
           onUpdateStats={updateStatsState}
           onOpenSettings={() => setShowSettingsModal(true)}
+          onGoHome={() => navigateTo('home')}
+          currentScreen={screen}
         />
       )}
 
       {/* Main View Router */}
       <main className="flex-1 flex flex-col">
         {screen === 'splash' && (
-          <SplashScreen onStart={() => setScreen('home')} />
+          <SplashScreen onStart={() => navigateTo('home')} />
         )}
 
         {screen === 'home' && (
           <HomeScreen
             stats={stats}
-            onNavigate={(navScreen) => setScreen(navScreen)}
+            onNavigate={(navScreen) => navigateTo(navScreen)}
             onOpenDailyChallenge={() => setShowDailyModal(true)}
             onOpenAchievementsModal={() => setShowAchievementsModal(true)}
             onOpenProfileModal={() => setShowProfileModal(true)}
@@ -302,9 +328,9 @@ export default function App() {
             stats={stats}
             onSelectStory={(story) => {
               setSelectedRealLifeStory(story);
-              setScreen('real-life-play');
+              navigateTo('real-life-play');
             }}
-            onBack={() => setScreen('home')}
+            onBack={() => navigateTo('home')}
           />
         )}
 
@@ -314,7 +340,7 @@ export default function App() {
             soundEnabled={stats.soundEnabled}
             vibrationEnabled={stats.vibrationEnabled}
             onFinishStory={handleFinishRealLifeStory}
-            onBack={() => setScreen('real-life-list')}
+            onBack={() => navigateTo('real-life-list')}
           />
         )}
 
@@ -324,8 +350,8 @@ export default function App() {
             accumulatedEffects={realLifeEffectsGained}
             xpEarned={selectedRealLifeStory.completionReward.xp}
             coinsEarned={selectedRealLifeStory.completionReward.coins}
-            onReplayStory={() => setScreen('real-life-play')}
-            onComplete={() => setScreen('home')}
+            onReplayStory={() => navigateTo('real-life-play')}
+            onComplete={() => navigateTo('home')}
           />
         )}
 
@@ -333,9 +359,9 @@ export default function App() {
           <JourneysListScreen
             onSelectJourney={(journey) => {
               setSelectedJourney(journey);
-              setScreen('journey-play');
+              navigateTo('journey-play');
             }}
-            onBack={() => setScreen('home')}
+            onBack={() => navigateTo('home')}
           />
         )}
 
@@ -343,7 +369,7 @@ export default function App() {
           <JourneyPlayScreen
             journey={selectedJourney}
             onFinishJourney={handleFinishJourney}
-            onBack={() => setScreen('journeys')}
+            onBack={() => navigateTo('journeys')}
           />
         )}
 
@@ -351,9 +377,9 @@ export default function App() {
           <MysteriesListScreen
             onSelectMystery={(mystery) => {
               setSelectedMystery(mystery);
-              setScreen('mystery-play');
+              navigateTo('mystery-play');
             }}
-            onBack={() => setScreen('home')}
+            onBack={() => navigateTo('home')}
           />
         )}
 
@@ -361,7 +387,7 @@ export default function App() {
           <MysteryPlayScreen
             mystery={selectedMystery}
             onFinishMystery={handleFinishMystery}
-            onBack={() => setScreen('mysteries')}
+            onBack={() => navigateTo('mysteries')}
           />
         )}
 
@@ -372,10 +398,10 @@ export default function App() {
             leveledUp={leveledUp}
             newLevel={newLevel}
             onPlayAgain={() => {
-              if (gameResult.mode === 'journey') setScreen('journeys');
-              else setScreen('mysteries');
+              if (gameResult.mode === 'journey') navigateTo('journeys');
+              else navigateTo('mysteries');
             }}
-            onGoHome={() => setScreen('home')}
+            onGoHome={() => navigateTo('home')}
           />
         )}
       </main>
