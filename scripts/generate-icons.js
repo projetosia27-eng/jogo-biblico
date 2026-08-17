@@ -46,6 +46,9 @@ function generateIconPNG(size, isMaskable = false) {
         const outsideDist = Math.sqrt(Math.max(0, qx) ** 2 + Math.max(0, qy) ** 2);
 
         if (qx > 0 && qy > 0 && outsideDist > cornerRadius) {
+          r = 0;
+          g = 0;
+          b = 0;
           a = 0;
         }
       }

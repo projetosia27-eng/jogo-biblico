@@ -1,10 +1,10 @@
-const CACHE_NAME = 'jornada-da-fe-v1.0.0';
+const CACHE_NAME = 'jornada-da-fe-v1.1.0';
 
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/manifest.webmanifest',
   '/manifest.json',
+  '/manifest.webmanifest',
   '/icons/icon.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -13,17 +13,23 @@ const STATIC_ASSETS = [
   '/icons/apple-touch-icon.png'
 ];
 
-// Install Event
+// Install Event - Resilient caching
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
+      return Promise.all(
+        STATIC_ASSETS.map((asset) => {
+          return cache.add(asset).catch((err) => {
+            console.warn('Falha ao cachear recurso no install:', asset, err);
+          });
+        })
+      );
     })
   );
   self.skipWaiting();
 });
 
-// Activate Event
+// Activate Event - Clean old caches & claim clients immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -38,7 +44,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Message Event (for update trigger from client)
+// Message Event (for update triggers from client app)
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
@@ -73,7 +79,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Asynchronously update cache in background for Google Fonts & JS assets
+        // Asynchronously update cache in background
         fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
@@ -83,7 +89,7 @@ self.addEventListener('fetch', (event) => {
       }
 
       return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic' && !url.host.includes('fonts.googleapis.com') && !url.host.includes('fonts.gstatic.com')) {
+        if (!networkResponse || networkResponse.status !== 200 || (networkResponse.type !== 'basic' && !url.host.includes('fonts.googleapis.com') && !url.host.includes('fonts.gstatic.com'))) {
           return networkResponse;
         }
 
